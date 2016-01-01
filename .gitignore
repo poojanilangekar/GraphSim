@@ -1,0 +1,24 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+
+graphchi_metrics.*
+
+*.swp
+
+*.lock
+
+conf/graphchi.cnf.local
+*.la
+*.a
+*~
+
+bin

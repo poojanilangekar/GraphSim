@@ -1,0 +1,9 @@
+#!/bin/bash
+
+src_path=$(hostname):$PWD
+dest_path=$PWD
+num_hosts=$(wc -l ~/GraphSim/machines)
+
+cd ~
+mpiexec -hostfile ~/GraphSim/machines -env MPICH_NO_LOCAL 1 -ppn 1 mkdir -p $dest_path
+mpiexec -hostfile ~/GraphSim/machines -env MPICH_NO_LOCAL 1 -ppn 1 rsync -e 'ssh -o StrictHostKeyChecking=no -i /home/awaraka/.ssh/id_rsa' -avz --exclude '*.make' --exclude '*.cmake' --exclude '*.internal' --exclude '*.includecache' --exclude '*.o' $src_path/ $dest_path
