@@ -6,8 +6,8 @@ GraphSim is an adaptive graph simulation system, which can run with different nu
 
 GraphSim is implemented in C++, and available as open-source under the MIT License.
 
-Downloading GraphSim
--------------
+Download GraphSim
+----------------------
 
 You can download GraphSim directly from the Github Repository. Github also offers a zip download of the repository if you do not have git.
 
@@ -29,11 +29,8 @@ Dependencies
 GraphSim has the following dependencies.
 
 1. [g++ (>= 4.8)](https://gcc.gnu.org/gcc-4.8/)
-
 2. [MPICH (>= 3.1)](https://www.mpich.org/downloads/)
-
 3. [zlib](https://launchpad.net/ubuntu/+source/zlib)
-
 4. [TBB](https://www.threadingbuildingblocks.org/) 
 
 
