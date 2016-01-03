@@ -30,9 +30,10 @@ typedef int VertexDataType;
 typedef chivector<vid_t> EdgeDataType;
 
 /* 
- * vertex_json contains label data of the input graph.
  * query_json contains the labels and the structure of the query graph.
  * rvec_map is a mapping between each node and its corresponding result vectors. 
+ * label_map contains the vertex labels of the input data graph.
+ * bloom_schedule keeps track of all the vertices which have been explored and need to be refined.
  */
 
 nlohmann::json query_json;
@@ -66,6 +67,8 @@ bool bloom_contains(vid_t vertex_id) {
     return contains;
 }
 
+
+//Function to read the paritial result vectors for each interval and create the complete result set. 
 void load_result(std::string filename) {
      std::ifstream rvf(filename);
      assert(rvf.is_open());
@@ -93,6 +96,7 @@ void load_result(std::string filename) {
 
 }
 
+//Function to split the data graph labels into intervals and fill the corresponding label files. 
 void fill_label(std::string filename, std::pair <vid_t,vid_t> interval) {
     vid_t start_i = interval.first, end_i = interval.second;
     std::string labelfile = filename+"_label_"+std::to_string(start_i)+"_"+std::to_string(end_i);
@@ -113,6 +117,7 @@ void fill_label(std::string filename, std::pair <vid_t,vid_t> interval) {
 
 struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
     
+    //Write the rvec to the corresponding file. 
     void load_rvec_file(std::string filename)
      {
          std::ofstream rvf(filename, std::ios::trunc);
@@ -124,6 +129,7 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
          rvf.close();
      }
     
+    //Load the rvec from the corresponding file. 
     void load_rvec(std::string filename)
      {
          std::ifstream rvf(filename);
@@ -147,6 +153,7 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
          
      }
     
+    //Write the labels to the corresponding file.
     void load_label_file(std::string filename)
      {
          std::ofstream lvf(filename, std::ios::trunc);
@@ -158,7 +165,7 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
          lvf.close();
      }
     
-    
+    //Load the labels from the corresponding file.
     void load_label(std::string filename)
     {
         std::ifstream lvf(filename);
@@ -228,11 +235,11 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
         
 
         /*
-         * If the vertex has a null rvec, it is being computed for the first time. 
+         * If the vertex has a null rvec, vertex is not yet explored. 
          * Compare the vertex with each of the vertices in the query graph.
          * If the current node matches the query node, add the dependencies of the query node to the rvec.
          * If the query node does not have any dependencies, set rvec[i] as true. (This implies a direct match)
-         * If the query node and the current node don't match, set rvec[i] to false and add i to vertex_false. 
+         * If the query node and the current node don't match, add i to vertex_false.
          */
         
         if(rvec.is_null()){
@@ -255,7 +262,6 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
                     }
                     else if(vertex.num_outedges() == 0)
                     {
-                        //rvec[i] = false; //TBR
                         vertex_false.push_back(i);
                     }
                     else
@@ -271,7 +277,6 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
                 else
                 {
                     q_mtx.unlock();
-                    //rvec[i] = false; //TBR
                     vertex_false.push_back(i);
                 }
             }
@@ -302,6 +307,8 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
         
         if(dependencies != 0 ) {
             
+            //Gather updates from all the children and update the corresponding dependencies. 
+            
             nlohmann::json updates;
             
             for(int i = 0; i < vertex.num_outedges(); i++){                    
@@ -331,7 +338,6 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
                         if(rvec[j][i].is_number()){
                             int prev_dep = rvec[j][i];
                             if(prev_dep <= cur_updates) {
-                                //rvec[j] = false; //TBR
                                 rvec[j] = nlohmann::json::value_t::null;
                                 vertex_false.push_back(j);
                                 int out_d = query_json["node"][j]["out_degree"];
@@ -360,7 +366,7 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
                 chivector<vid_t> * e_vector = vertex.inedge(i) -> get_vector();
                 for(unsigned int j = 0; j < vertex_false.size(); j++)
                     e_vector->add(vertex_false[j]);
-                if(bloom_contains(vertex.inedge(i)->vertex_id()) || (dependencies != 0))
+                if(bloom_contains(vertex.inedge(i)->vertex_id()) || (dependencies != 0)) //schedule parent vertices only if they are already explored or probably lie in the descendants path.
                     gcontext.scheduler->add_task(vertex.inedge(i)->vertex_id());
             }
         }
@@ -398,6 +404,7 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
     
     /**
      * Called before an execution interval is started.
+     * Load the labels and the rvec from the files to memory.
      */
     void before_exec_interval(vid_t window_st, vid_t window_en, graphchi_context &gcontext) {
         rvec_map.clear();
@@ -420,6 +427,7 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
     
     /**
      * Called after an execution interval has finished.
+     * Write the labels and the rvec back to the memory.
      */
     void after_exec_interval(vid_t window_st, vid_t window_en, graphchi_context &gcontext) {        
     
@@ -472,6 +480,7 @@ void fill_vertex(std::string vfilename)
 
 int main(int argc, const char ** argv) {
     
+    //Initialize worker process
     graphchi_init(argc, argv);
     int provided;    
     MPI_Init_thread(NULL,NULL, MPI_THREAD_FUNNELED, &provided);
@@ -484,6 +493,12 @@ int main(int argc, const char ** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     int world_size;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    
+    if(world_size == 1) {
+        logstream(LOG_ERROR) << "Minimum of 2 workers required for a swap worker. Aborting!\n";
+        exit(1);
+    }
+    assert(world_size > 1);
     
     char processor_name[MPI_MAX_PROCESSOR_NAME];
     int pname_len;
@@ -526,18 +541,15 @@ int main(int argc, const char ** argv) {
      * The queryfile contains the query pattern. It includes the label data and the structure of the query.
      */
     fill_degree(query_json);
-   
-    /*
-     * For inmemorymode, The number of iterations is determined by the number of edges times number of vertices. (Worst Case)
-     */
     int niters = query_json["node"].size()*query_json["edge"].size(); 
     
     
-    //Initailize the graph simulation program. 
+    //Initailize the GraphSim program. 
     GraphSimulation program;
     graphchi_engine<VertexDataType, EdgeDataType> engine(filename, nshards, scheduler, m); 
     thread_fill_vertex.join();
     
+    //Split the label file into the corresponding intervals.
     std::vector< std::pair<vid_t,vid_t> > intervals(engine.get_intervals());
     std::thread *label_threads[intervals.size()];
     for(size_t l = 0; l < intervals.size();l++) {
@@ -547,23 +559,21 @@ int main(int argc, const char ** argv) {
         label_threads[lt]->join();
     }
     label_map.clear();
-
+    
+    
     /*
-     * Optimize the graphchi engine and run the graph_simulation program.
+     * Optimize the graphchi engine. 
      */
     int n_threads = std::thread::hardware_concurrency();
-
     engine.set_exec_threads(n_threads);
     engine.set_load_threads(n_threads);
     int memory = std::ceil((float)(get_option_int("memory",1024) * get_option_float("alpha",0.75)));
     engine.set_membudget_mb(memory);
     init_bloom(engine.num_vertices()/nshards);
     engine.set_reset_vertexdata(true);
-
-    if(world_size > 1)
-        engine.run(program,niters,world_rank);
-    else
-        engine.run(program,niters); //If world_size is 1, the engine is run using the inmemorymode. Need not mention starting interval. 
+    
+    //Run the GraphSim program.
+    engine.run(program,niters,world_rank);
 
 
     /* After completion of the graphchi program, ship the results to the master. 
