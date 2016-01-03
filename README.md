@@ -12,10 +12,10 @@ Downloading GraphSim
 You can download GraphSim directly from the Github Repository. Github also offers a zip download of the repository if you do not have git.
 
 The git command line for cloning the repository is:
-
+```
 git clone https://github.com/poojanilangekar/GraphSim.git
-cd graphlab
-
+cd GraphSim
+```
 
 
 Building
