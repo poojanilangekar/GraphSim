@@ -34,7 +34,7 @@ int main(int argc, const char ** argv) {
     int world_size;
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     
-    if((world_size > 1) && (world_rank == 0))
+    if((world_size > 1) && (world_rank == 0)) //Only one master process can exist. 
     {
         logstream(LOG_ERROR)<<"Maximum of 1 master process should be started.\n";
         exit(1);
@@ -93,20 +93,21 @@ int main(int argc, const char ** argv) {
         logstream(LOG_INFO)<<"Vertex file size: "<<vfilesize/1000000<<"MB\n";
 
         nparts = std::ceil((float)((4*edges*(32 + qvertices*4.0))/((memory*alpha*1000000) - (1152 + (vfilesize) + (vertices *( 124 + (24*qvertices)+ (4 *qedges)))) )));
-        if((nparts < 1) || (nparts >= 10))
+        
+        if((nparts < 1) || (nparts >= 10)) //If there is insufficient memory or 10 or more workers are required, use the swap worker. 
         {
             
             worker = "./bin/src/GraphSim_swap_worker";
             nparts = std::ceil(((4*edges*(32 + qvertices*4.0))+(vertices *( 120 + (24*qvertices)+ (4 *qedges)))+vfilesize)/((alpha*memory*1000000)-(1152+(vertices*4)))) + std::ceil(vertices/10000000);
-            if(nparts == 1)
+            if(nparts == 2) // 2 swap workers signify insufficient memory.
                 nparts = -1;
             else
                 logstream(LOG_DEBUG)<<"Starting worker with swap function. Engine might be slower!\n";
         }
         else {  
             worker = "./bin/src/GraphSim_worker";
-            if(nparts != 1)
-                nparts = nparts + 1;
+            if(nparts != 1) 
+                nparts = nparts + 1; //+1 for the bloom filter.
         }
     }
     /*
