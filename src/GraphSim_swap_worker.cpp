@@ -93,6 +93,24 @@ void load_result(std::string filename) {
 
 }
 
+void fill_label(std::string filename, std::pair <vid_t,vid_t> interval) {
+    vid_t start_i = interval.first, end_i = interval.second;
+    std::string labelfile = filename+"_label_"+std::to_string(start_i)+"_"+std::to_string(end_i);
+    std::ofstream lvf(labelfile);
+    for(vid_t i = start_i; i < end_i; i++)
+    {
+        tbb::concurrent_hash_map<unsigned int, nlohmann::json>::accessor ac;
+        if(label_map.find(ac,i)) {
+            lvf<<i<<"\n";
+            lvf<<ac->second<<"\n";
+            ac.release();
+            label_map.erase(i);
+        }
+        
+    }
+    lvf.close();
+}
+
 struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
     
     void load_rvec_file(std::string filename)
@@ -128,6 +146,39 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
          rvf.close();
          
      }
+    
+    void load_label_file(std::string filename)
+     {
+         std::ofstream lvf(filename, std::ios::trunc);
+         for(tbb::concurrent_hash_map<unsigned int, nlohmann::json>::iterator it = label_map.begin(); it != label_map.end(); ++it) {
+             lvf<<it->first<<"\n"<<it->second<<"\n";
+         }
+         label_map.clear();
+         lvf.flush();
+         lvf.close();
+     }
+    
+    
+    void load_label(std::string filename)
+    {
+        std::ifstream lvf(filename);
+        std::string line;
+        vid_t vertex_id;
+        while(std::getline(lvf,line)) {
+             std::stringstream(line)>>vertex_id;
+             tbb::concurrent_hash_map<unsigned int, nlohmann::json>::accessor ac;
+             label_map.insert(ac,vertex_id);
+             if(std::getline(lvf,line)) {
+                 ac->second = nlohmann::json::parse(line);
+                 ac.release();
+             }
+             else {
+                 logstream(LOG_ERROR) <<"Corrupt Result Vector file "<<filename<<"! Engine will abort\n";
+                 exit(1);
+             }
+         }
+         lvf.close();
+    }
     
 /*
  * The check_equal function determines if the labels of the datanode and the querynode are equal.
@@ -351,14 +402,19 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
     void before_exec_interval(vid_t window_st, vid_t window_en, graphchi_context &gcontext) {
         rvec_map.clear();
         if(gcontext.scheduler->num_tasks()) {
+            
+            std::string labelfile = gcontext.filename+"_label_"+std::to_string(window_st)+"_"+std::to_string(window_en);
+            std::thread ll(&GraphSimulation::load_label,this,labelfile);
             if(computed_interval[std::make_pair(window_st,window_en)] == true){
                 logstream(LOG_DEBUG) << gcontext.runtime()<<"s : "<<"Loading Result Vector from the file.\n";
                 std::string rvecfile = gcontext.filename+"_rvec_"+std::to_string(window_st)+"_"+std::to_string(window_en); 
                 load_rvec(rvecfile);
+                
             }
             else{
                 logstream(LOG_INFO) << "Initilaizing new Result Vector. \n";
-            } 
+            }
+            ll.join();
         }
     }
     
@@ -368,9 +424,13 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
     void after_exec_interval(vid_t window_st, vid_t window_en, graphchi_context &gcontext) {        
     
         computed_interval[std::make_pair(window_st,window_en)] = true;
+        std::string labelfile = gcontext.filename+"_label_"+std::to_string(window_st)+"_"+std::to_string(window_en);
+        std::thread ll(&GraphSimulation ::load_label_file,this,labelfile);
         std::string rvecfile = gcontext.filename+"_rvec_"+std::to_string(window_st)+"_"+std::to_string(window_en);
         logstream(LOG_DEBUG) << gcontext.runtime()<<"s : "<<"Saving "<<rvec_map.size()<<" vertices to Result Vector File.\n";
         load_rvec_file(rvecfile);
+        ll.join();
+ 
     }
     
 };
@@ -477,6 +537,16 @@ int main(int argc, const char ** argv) {
     GraphSimulation program;
     graphchi_engine<VertexDataType, EdgeDataType> engine(filename, nshards, scheduler, m); 
     thread_fill_vertex.join();
+    
+    std::vector< std::pair<vid_t,vid_t> > intervals(engine.get_intervals());
+    std::thread *label_threads[intervals.size()];
+    for(size_t l = 0; l < intervals.size();l++) {
+        label_threads[l] = new std::thread(fill_label,filename, intervals[l]);
+    }
+    for(size_t lt = 0; lt != intervals.size();lt++) {
+        label_threads[lt]->join();
+    }
+    label_map.clear();
 
     /*
      * Optimize the graphchi engine and run the graph_simulation program.

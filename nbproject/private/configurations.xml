@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df root="." name="0">
+      <df name="bin">
+        <df name="src">
+        </df>
+      </df>
+      <df name="conf">
+        <df name="adminhtml">
+          <df name="backup">
+          </df>
+          <df name="bootstrap">
+            <df name="css">
+            </df>
+            <df name="img">
+            </df>
+            <df name="js">
+            </df>
+          </df>
+          <df name="plots">
+          </df>
+          <df name="style">
+          </df>
+        </df>
+        <df name="doxygen">
+        </df>
+      </df>
+      <df name="src">
+        <in>GraphSim_master.cpp</in>
+        <in>GraphSim_swap_worker.cpp</in>
+        <in>GraphSim_worker.cpp</in>
+      </df>
+      <df name="util">
+        <df name="api">
+          <df name="dynamicdata">
+            <in>chivector.hpp</in>
+          </df>
+          <df name="functional">
+            <in>functional_api.hpp</in>
+            <in>functional_bulksync.hpp</in>
+            <in>functional_defs.hpp</in>
+            <in>functional_semisync.hpp</in>
+          </df>
+          <df name="graphlab2_1_GAS_api">
+            <in>assertions.hpp</in>
+            <in>graphchi_graphlabv2_1.hpp</in>
+            <in>graphlab.hpp</in>
+            <in>random.cpp</in>
+            <in>random.hpp</in>
+          </df>
+          <in>chifilenames.hpp</in>
+          <in>graph_objects.hpp</in>
+          <in>graphchi_context.hpp</in>
+          <in>graphchi_program.hpp</in>
+          <in>ischeduler.hpp</in>
+          <in>vertex_aggregator.hpp</in>
+        </df>
+        <df name="engine">
+          <df name="auxdata">
+            <df name="dynamicdata">
+              <in>vertex_data_dynamic.hpp</in>
+            </df>
+            <in>degree_data.hpp</in>
+            <in>vertex_data.hpp</in>
+          </df>
+          <df name="dynamic_graphs">
+            <in>edgebuffers.hpp</in>
+            <in>graphchi_dynamicgraph_engine.hpp</in>
+          </df>
+          <df name="functional">
+            <in>functional_engine.hpp</in>
+          </df>
+          <in>bitset_scheduler.hpp</in>
+          <in>graphchi_engine.hpp</in>
+        </df>
+        <df name="external">
+          <df name="vpiotr-mongoose-cpp">
+            <df name="bindings">
+              <df name="csharp">
+              </df>
+              <df name="python">
+              </df>
+            </df>
+            <df name="build">
+            </df>
+            <df name="examples">
+              <df name="html">
+              </df>
+              <in>chat.c</in>
+            </df>
+            <df name="test">
+              <in>embed.c</in>
+              <in>mongotest.cpp</in>
+            </df>
+            <df name="win32">
+            </df>
+            <in>main.c</in>
+            <in>mongcpp.cpp</in>
+            <in>mongcpp.h</in>
+            <in>mongoose.c</in>
+            <in>mongoose.h</in>
+          </df>
+        </df>
+        <df name="httpadmin">
+          <in>chi_httpadmin.hpp</in>
+          <in>plotter.hpp</in>
+        </df>
+        <df name="io">
+          <in>stripedio.hpp</in>
+        </df>
+        <df name="logger">
+          <in>logger.hpp</in>
+        </df>
+        <df name="metrics">
+          <df name="reps">
+            <in>basic_reporter.hpp</in>
+            <in>file_reporter.hpp</in>
+            <in>html_reporter.hpp</in>
+            <in>null_reporter.hpp</in>
+          </df>
+          <in>imetrics_reporter.hpp</in>
+          <in>metrics.hpp</in>
+        </df>
+        <df name="output">
+          <in>output.hpp</in>
+        </df>
+        <df name="preprocessing">
+          <df name="util">
+            <in>orderbydegree.hpp</in>
+          </df>
+          <in>blocksplitter.cpp</in>
+          <in>conversions.hpp</in>
+          <in>sharder.hpp</in>
+          <in>sharder_basic.cpp</in>
+        </df>
+        <df name="shards">
+          <df name="dynamicdata">
+            <in>dynamicblock.hpp</in>
+            <in>memoryshard.hpp</in>
+            <in>slidingshard.hpp</in>
+          </df>
+          <in>memoryshard.hpp</in>
+          <in>slidingshard.hpp</in>
+        </df>
+        <df name="tests">
+          <in>basic_dynamicengine_smoketest.cpp</in>
+          <in>basic_dynamicengine_smoketest2.cpp</in>
+          <in>basic_smoketest.cpp</in>
+          <in>bulksync_functional_test.cpp</in>
+          <in>dynamicdata_smoketest.cpp</in>
+          <in>test_dynamicedata_loader.cpp</in>
+        </df>
+        <df name="util">
+          <in>atomic.hpp</in>
+          <in>binary_minheap.hpp</in>
+          <in>cmdopts.hpp</in>
+          <in>configfile.hpp</in>
+          <in>dense_bitset.hpp</in>
+          <in>erdosrenyi.cpp</in>
+          <in>graphgenerators.cpp</in>
+          <in>graphgenerators.h</in>
+          <in>ioutil.hpp</in>
+          <in>kwaymerge.hpp</in>
+          <in>labelanalysis.hpp</in>
+          <in>merge.hpp</in>
+          <in>pthread_tools.hpp</in>
+          <in>qsort.hpp</in>
+          <in>radixSort.hpp</in>
+          <in>randomweightinject.cpp</in>
+          <in>readdeg.cpp</in>
+          <in>synchronized_queue.hpp</in>
+          <in>toplist.hpp</in>
+        </df>
+        <in>bloom_filter.hpp</in>
+        <in>graphchi_basic_includes.hpp</in>
+        <in>graphchi_types.hpp</in>
+        <in>json.hpp</in>
+      </df>
+    </df>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Default" type="0">
+      <toolsSet>
+        <developmentServer>localhost</developmentServer>
+        <platform>2</platform>
+      </toolsSet>
+      <compile>
+        <compiledirpicklist>
+          <compiledirpicklistitem>.</compiledirpicklistitem>
+          <compiledirpicklistitem>${AUTO_FOLDER}</compiledirpicklistitem>
+        </compiledirpicklist>
+        <compiledir>${AUTO_FOLDER}</compiledir>
+        <compilecommandpicklist>
+          <compilecommandpicklistitem>${MAKE} ${ITEM_NAME}.o</compilecommandpicklistitem>
+          <compilecommandpicklistitem>${AUTO_COMPILE}</compilecommandpicklistitem>
+        </compilecommandpicklist>
+        <compilecommand>${AUTO_COMPILE}</compilecommand>
+      </compile>
+      <dbx_gdbdebugger version="1">
+        <gdb_pathmaps>
+        </gdb_pathmaps>
+        <gdb_interceptlist>
+          <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
+        </gdb_interceptlist>
+        <gdb_options>
+          <DebugOptions>
+          </DebugOptions>
+        </gdb_options>
+        <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
+      </dbx_gdbdebugger>
+      <nativedebugger version="1">
+        <engine>gdb</engine>
+      </nativedebugger>
+      <runprofile version="9">
+        <runcommandpicklist>
+          <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+        </runcommandpicklist>
+        <runcommand>"${OUTPUT_PATH}"</runcommand>
+        <rundir>.</rundir>
+        <buildfirst>false</buildfirst>
+        <terminal-type>0</terminal-type>
+        <remove-instrumentation>0</remove-instrumentation>
+        <environment>
+        </environment>
+      </runprofile>
+    </conf>
+  </confs>
+</configurationDescriptor>

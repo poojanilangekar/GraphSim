@@ -15,7 +15,6 @@
 #include <streambuf>
 #include <thread>
 #include <mutex>
-#include <utility>
 #include <bloom_filter.hpp>
 
 #include <json.hpp>
@@ -38,11 +37,9 @@ typedef chivector<vid_t> EdgeDataType;
 nlohmann::json query_json;
 tbb::concurrent_hash_map<unsigned int, nlohmann::json> rvec_map;
 tbb::concurrent_hash_map<unsigned int, nlohmann::json> label_map;
-tbb::concurrent_hash_map<vid_t, std::set<vid_t> >result; 
 std::mutex q_mtx;
 std::mutex b_mtx;
 bloom_filter bloom_schedule;
-std::map < std::pair <vid_t, vid_t>, bool> computed_interval;
 
 void init_bloom(unsigned long int vertices) {
     bloom_parameters p;
@@ -66,68 +63,7 @@ bool bloom_contains(vid_t vertex_id) {
     return contains;
 }
 
-void load_result(std::string filename) {
-     std::ifstream rvf(filename);
-     assert(rvf.is_open());
-     std::string line;
-     vid_t vertex_id;
-     while(std::getline(rvf,line)) {
-         std::stringstream(line)>>vertex_id;
-         if(std::getline(rvf,line)) {
-             nlohmann::json v_rvec = nlohmann::json::parse(line);
-             for(size_t i =0; i  < v_rvec.size(); i++) {
-                 if((v_rvec[i].is_array()) || (v_rvec[i].is_boolean())) {
-                     tbb::concurrent_hash_map<vid_t, std::set <vid_t> >::accessor ac;
-                     result.insert(ac,i);
-                     (ac->second).insert(vertex_id);
-                     ac.release();
-                 }
-             }
-         }
-         else {
-             logstream(LOG_ERROR) <<"Corrupt Result Vector file "<<filename<<"! Engine will abort\n";
-             exit(1);
-         }
-     }
-     rvf.close();
-
-}
-
 struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
-    
-    void load_rvec_file(std::string filename)
-     {
-         std::ofstream rvf(filename, std::ios::trunc);
-         for(tbb::concurrent_hash_map<unsigned int, nlohmann::json>::iterator it = rvec_map.begin(); it != rvec_map.end(); ++it) {
-             rvf<<it->first<<"\n"<<it->second<<"\n";
-         }
-         rvec_map.clear();
-         rvf.flush();
-         rvf.close();
-     }
-    
-    void load_rvec(std::string filename)
-     {
-         std::ifstream rvf(filename);
-         assert(rvf.is_open());
-         std::string line;
-         vid_t vertex_id;
-         while(std::getline(rvf,line)) {
-             std::stringstream(line)>>vertex_id;
-             tbb::concurrent_hash_map<unsigned int, nlohmann::json>::accessor ac;
-             rvec_map.insert(ac,vertex_id);
-             if(std::getline(rvf,line)) {
-                 ac->second = nlohmann::json::parse(line);
-                 ac.release();
-             }
-             else {
-                 logstream(LOG_ERROR) <<"Corrupt Result Vector file "<<filename<<"! Engine will abort\n";
-                 exit(1);
-             }
-         }
-         rvf.close();
-         
-     }
     
 /*
  * The check_equal function determines if the labels of the datanode and the querynode are equal.
@@ -187,12 +123,20 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
         if(rvec.is_null()){
             
             rvec = nlohmann::json::array();
+            
             dependencies = 0; //Vertex is being computed for the first time and hence has zero dependencies. 
             tbb::concurrent_hash_map<unsigned int, nlohmann::json>::accessor la;
             label_map.insert(la,vertex.id());
             nlohmann::json label_data = la->second;
             la.release();
             label_map.erase(vertex.id());
+            if((vertex.num_outedges()==0) && (vertex.num_inedges() == 0)) {
+             vertex.set_data(0);
+             ac->second = rvec;
+             ac.release();
+             return;
+             
+            }
             
             for(unsigned int i=0; i < query_json["node"].size(); i++) {
                 q_mtx.lock();
@@ -335,42 +279,23 @@ struct GraphSimulation : public GraphChiProgram<VertexDataType, EdgeDataType> {
        * If there were no changes, stop execution by setting current iteration to last iteration. 
        */
         if(gcontext.scheduler->num_tasks() != 0)
-        {
             gcontext.set_last_iteration(iteration+1);
-        }
         else {
             gcontext.set_last_iteration(iteration);
             label_map.clear();
         }
-       
     }
     
     /**
      * Called before an execution interval is started.
      */
-    void before_exec_interval(vid_t window_st, vid_t window_en, graphchi_context &gcontext) {
-        rvec_map.clear();
-        if(gcontext.scheduler->num_tasks()) {
-            if(computed_interval[std::make_pair(window_st,window_en)] == true){
-                logstream(LOG_DEBUG) << gcontext.runtime()<<"s : "<<"Loading Result Vector from the file.\n";
-                std::string rvecfile = gcontext.filename+"_rvec_"+std::to_string(window_st)+"_"+std::to_string(window_en); 
-                load_rvec(rvecfile);
-            }
-            else{
-                logstream(LOG_INFO) << "Initilaizing new Result Vector. \n";
-            } 
-        }
+    void before_exec_interval(vid_t window_st, vid_t window_en, graphchi_context &gcontext) {        
     }
     
     /**
      * Called after an execution interval has finished.
      */
     void after_exec_interval(vid_t window_st, vid_t window_en, graphchi_context &gcontext) {        
-    
-        computed_interval[std::make_pair(window_st,window_en)] = true;
-        std::string rvecfile = gcontext.filename+"_rvec_"+std::to_string(window_st)+"_"+std::to_string(window_en);
-        logstream(LOG_DEBUG) << gcontext.runtime()<<"s : "<<"Saving "<<rvec_map.size()<<" vertices to Result Vector File.\n";
-        load_rvec_file(rvecfile);
     }
     
 };
@@ -408,7 +333,6 @@ void fill_vertex(std::string vfilename)
         ac.release();
     }
 }
-
 
 int main(int argc, const char ** argv) {
     
@@ -476,7 +400,7 @@ int main(int argc, const char ** argv) {
     //Initailize the graph simulation program. 
     GraphSimulation program;
     graphchi_engine<VertexDataType, EdgeDataType> engine(filename, nshards, scheduler, m); 
-    thread_fill_vertex.join();
+    
 
     /*
      * Optimize the graphchi engine and run the graph_simulation program.
@@ -488,6 +412,7 @@ int main(int argc, const char ** argv) {
     int memory = std::ceil((float)(get_option_int("memory",1024) * get_option_float("alpha",0.75)));
     engine.set_membudget_mb(memory);
     init_bloom(engine.num_vertices()/nshards);
+    thread_fill_vertex.join();
     engine.set_reset_vertexdata(true);
 
     if(world_size > 1)
@@ -502,18 +427,16 @@ int main(int argc, const char ** argv) {
      * Else the data graph does not match the query. Ship an empty message to the master.
      */
     
-    logstream(LOG_DEBUG) <<" Creating Result set... \n";
-    std::thread *rvec_threads[computed_interval.size()];
-    size_t rt = 0;
-    for(std::map < std::pair <vid_t, vid_t>, bool>::iterator it = computed_interval.begin(); it != computed_interval.end(); it++) {
-        if(it->second) {
-            std::string rvecfile = filename+"_rvec_"+std::to_string((it->first).first)+"_"+std::to_string((it->first).second); 
-            rvec_threads[rt] = new std::thread(load_result,rvecfile);
-            rt++;
+    
+    std::map<vid_t, std::set<vid_t> > result;
+    for (tbb::concurrent_hash_map<vid_t, nlohmann::json>::const_iterator it = rvec_map.begin(); it != rvec_map.end() ; ++it) {
+        nlohmann::json rvec = it->second;
+        for(unsigned int i = 0; i < rvec.size(); i++){
+            if((rvec[i].is_array()) || (rvec[i].is_boolean())){
+                result[i].insert(it->first);
+            }
         }
-    }
-    for(size_t t = 0; t < rt; t++)
-        rvec_threads[t]->join();
+   }
     if(result.size() != query_json["node"].size())
     {
         vid_t *p_array = NULL;
@@ -522,10 +445,10 @@ int main(int argc, const char ** argv) {
     }
     else {
 
-        for(tbb::concurrent_hash_map <vid_t, std::set<vid_t> >::const_iterator it = result.begin(); it != result.end(); ++it) {
-            vid_t *p_array = new vid_t[(it->second).size()];
-            std::copy((it->second).begin(),(it->second).end(),p_array);
-            MPI_Send(p_array,(it->second).size(),MPI_UINT32_T,0,it->first,master);
+        for(size_t i = 0; i < query_json["node"].size();i++){
+            vid_t *p_array = new vid_t[result[i].size()];
+            std::copy(result[i].begin(),result[i].end(),p_array);
+            MPI_Send(p_array,result[i].size(),MPI_UINT32_T,0,i,master);
             delete[] p_array;
         }
     }
