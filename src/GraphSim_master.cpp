@@ -58,7 +58,7 @@ int main(int argc, const char ** argv) {
      * Gather the metrics to calculate the number of machines to be used.
      * Compute the optimal number of partitions.  
      */
-    int memory = get_option_int("memory",800); //If the memory parameter is not given assume 800MB (Same as graphchi)
+    int memory = get_option_int("memory",2000); //If the memory parameter is not given assume 800MB (Same as graphchi)
     if(memory <= 0)
     {
         logstream(LOG_FATAL)<<"Memory is set to"<<memory<<"mB\n";
@@ -66,6 +66,21 @@ int main(int argc, const char ** argv) {
         exit(1);
     }
     assert(memory>0);
+    
+    int hosts=0;
+    std::ifstream hfile("./machines");
+    std::string line;
+    if(hfile.is_open()){
+        while(std::getline(hfile,line))
+            hosts++;
+    }
+    hfile.close();
+    if(hosts == 0)
+    {
+        logstream(LOG_FATAL)<<"GraphSim requires atleast 1 machine.\n";
+        exit(1);
+    }
+    assert(hosts>0);
     
     float alpha = 0.75;
     std::string file_type = get_option_string("filetype", std::string());
@@ -78,8 +93,8 @@ int main(int argc, const char ** argv) {
     int nparts;
     std::string worker;
     if((vertices == 0) || (edges == 0)){
-        logstream(LOG_WARNING)<<"Number of edges/vertices not mentioned. Choosing default option of 1 worker.\n";
-        nparts = 1;
+        logstream(LOG_WARNING)<<"Number of edges/vertices not mentioned. Choosing default option of "<< hosts<<"workers.\n";
+        nparts = hosts;
     } else {
         int qvertices = query_json["node"].size();
         int qedges = query_json["edge"].size();
@@ -119,16 +134,6 @@ int main(int argc, const char ** argv) {
         exit(1);
     }
     assert(nparts >= 1); 
-    
-    int hosts=0;
-    std::ifstream hfile("./machines");
-    std::string line;
-    if(hfile.is_open()){
-        while(std::getline(hfile,line))
-            hosts++;
-    }
-    hfile.close();
-    
     
     if(nparts > hosts )
     {
