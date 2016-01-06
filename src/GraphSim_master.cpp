@@ -115,11 +115,28 @@ int main(int argc, const char ** argv) {
      */
     if(nparts < 1)
     {
-        logstream(LOG_FATAL)<<"Insufficient memory space. Try again by adding additional memory or varying the value of alpha.\n";
+        logstream(LOG_FATAL)<<"Insufficient memory space. Try again by adding additional memory.\n";
         exit(1);
     }
-
-    assert(nparts >= 1);   
+    assert(nparts >= 1); 
+    
+    int hosts=0;
+    std::ifstream hfile("./machines");
+    std::string line;
+    if(hfile.is_open()){
+        while(std::getline(hfile,line))
+            hosts++;
+    }
+    hfile.close();
+    
+    
+    if(nparts > hosts )
+    {
+        logstream(LOG_FATAL)<<"Insufficient machines. Try again by adding additional machines to the cluster or increase the memory available.\n";
+        exit(1);
+    }
+    assert(nparts <= hosts);
+      
 
     MPI_Comm intercomm;
 
@@ -132,8 +149,7 @@ int main(int argc, const char ** argv) {
         exit(1);
     }
     
-    std::string hostfile = get_option_string("hostfile");
-    MPI_Info_set(info,"hostfile",hostfile.c_str());
+    MPI_Info_set(info,"hostfile","./machines");
     
     logstream(LOG_DEBUG)<<"Spawning "<<nparts<<" worker processes.\n";
 
