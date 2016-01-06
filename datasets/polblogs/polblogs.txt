@@ -7,8 +7,8 @@ Node "value" attributes indicate political leaning according to:
   1 (right or conservative)
 
 Data on political leaning comes from blog directories as indicated.  Some blogs were labeled manually,
-based on incoming and outgoing links and posts
-around the time of the 2004 presidential election.  Directory-derived labels are prone to error; manual labels even more so.
+based on incoming and outgoing links and posts around the time of the 2004 presidential election.  
+Directory-derived labels are prone to error; manual labels even more so.
 
 Links between blogs were automatically extracted from a crawl of the front page of the blog.
 
