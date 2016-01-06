@@ -1,17 +1,15 @@
 
 # GraphChi configuration.
 # Commandline parameters override values in the configuration file.
-# execthreads=2
+
+execthreads= 4 
 loadthreads = 4
 niothreads = 4
 
-# Good for 8gigs
-#membudget_mb = 2000
-#cachesize_mb = 1000
 
-# Good for 4 gigs
-membudget_mb = 800
-cachesize_mb = 0
+membudget_mb = 2000
+cachesize_mb = 1000
+
 
 # I/O settings
 io.blocksize = 1048576 
