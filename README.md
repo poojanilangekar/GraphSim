@@ -36,7 +36,7 @@ GraphSim has the following dependencies.
 
 Usage 
 ----------------
-The //Wiki-entry provides a through guide to install and run GraphSim on a cluster.
+The [Wiki entery](https://github.com/poojanilangekar/GraphSim/wiki) provides a through guide to install and run GraphSim on a cluster.
 
 
 Todo
