@@ -7,7 +7,9 @@ DEBUGFLAGS = -g -ggdb $(INCFLAGS)
 HEADERS=$(shell find . -name '*.hpp')
 
 
-all: src/GraphSim_master src/GraphSim_worker src/GraphSim_swap_worker
+all: GraphSim
+
+GraphSim: src/GraphSim_master src/GraphSim_worker src/GraphSim_swap_worker
 echo:
 	echo $(HEADERS)
 clean:
