@@ -44,9 +44,9 @@ Todo
 
 The following extensions will be made to GraphSim  
 
-	1. Solve other notions of Graph Simulation, namely dual, strong, strict and bounded simulation.	
-	2. Enable Database search for label checking.  
-	3. Develop a job scheduler for GraphSim so as to allow it to process multiple queries at a time on shared clusters.
+1. Solve other notions of Graph Simulation, namely dual, strong, strict and bounded simulation.	
+2. Enable Database search for label checking.  
+3. Develop a job scheduler for GraphSim so as to allow it to process multiple queries at a time on shared clusters.
 
 Contributing
 -------------------
