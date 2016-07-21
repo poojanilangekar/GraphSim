@@ -12,6 +12,8 @@
 
 graphchi_metrics.*
 
+LOG_*
+
 *.swp
 
 *.lock

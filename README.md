@@ -2,7 +2,7 @@
 
 Large-scale graph processing is becoming central to our modern life. For instance, graph pattern matching  (GPM)  can  be  utilized  to  search  and  analyze  social  graphs,  biological  data  and  road networks,  to  mention  a  few.  Conceptually, a GPM  algorithm is typically  defined  in  terms  of subgraph isomorphism, whereby it seeks to find subgraphs in an input data graph, *G*, which are similar to a given query graph, *Q*. Although subgraph isomorphism forms a uniquely important class  of  graph queries, it  is NP-complete  and  very  restrictive. Consequently, GPM has been relaxed and defined in terms of **Graph Simulation**. As opposed to subgraph isomorphism, graph simulation can run in quadratic time, return more intuitive matches, and scale well with modern big graphs(i.e., graphs with billions of vertices and edges).
 
-The wide adoption of large-scale graph processing in general and graph simulation in particular calls for an efficient and scalable system. As a response to this call, we developed **GraphSim**.GraphSim is an adaptive graph simulation system, which can run with different numbers of machines for different data and query graphs (i.e., workloads). GraphSim accomplishes its goals via employing new data model that **entirely avoids intermediate data shipment** between slave machines. It deploys a new computation model that **increases parallelism and improves memory utilization**. It adopts a new mathematical model that allows **predicting different numbers of machines** for workloads with varying complexities.
+The wide adoption of large-scale graph processing in general and graph simulation in particular calls for efficient and scalable systems. As a response to this call, we developed **GraphSim**. GraphSim is an adaptive graph simulation system, which can run with different numbers of machines for different data and query graphs (i.e., workloads). GraphSim accomplishes its goals via employing new data model that **entirely avoids intermediate data shipment** between slave machines. It deploys a new computation model that **increases parallelism and improves memory utilization**. It adopts a new mathematical model that allows **predicting different numbers of machines** for workloads with varying complexities.
 
 GraphSim is implemented in C++, and available as open-source under the MIT License.
 
@@ -44,13 +44,13 @@ Todo
 
 The following extensions will be made to GraphSim  
 
-	1. Solve other notions of Graph Simulation, namely dual, strong, strict and bounded simulation.	
-	2. Enable Database search for label checking.  
-	3. Develop a job scheduler for GraphSim so as to allow it to process multiple queries at a time on shared clusters.
+1. Solve other notions of Graph Simulation, namely dual, strong, strict and bounded simulation.	
+2. Enable Database search for label checking.  
+3. Develop a job scheduler for GraphSim so as to allow it to process multiple queries at a time on shared clusters.
 
 Contributing
 -------------------
-1. Fork it ( https://github.com/[my-github-username]/GraphSim/fork )
+1. Fork it ( https://github.com/poojanilangekar/GraphSim/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
