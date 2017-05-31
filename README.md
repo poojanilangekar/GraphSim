@@ -1,4 +1,4 @@
-#GraphSim
+# GraphSim
 
 Large-scale graph processing is becoming central to our modern life. For instance, graph pattern matching  (GPM)  can  be  utilized  to  search  and  analyze  social  graphs,  biological  data  and  road networks,  to  mention  a  few.  Conceptually, a GPM  algorithm is typically  defined  in  terms  of subgraph isomorphism, whereby it seeks to find subgraphs in an input data graph, *G*, which are similar to a given query graph, *Q*. Although subgraph isomorphism forms a uniquely important class  of  graph queries, it  is NP-complete  and  very  restrictive. Consequently, GPM has been relaxed and defined in terms of **Graph Simulation**. As opposed to subgraph isomorphism, graph simulation can run in quadratic time, return more intuitive matches, and scale well with modern big graphs(i.e., graphs with billions of vertices and edges).
 
